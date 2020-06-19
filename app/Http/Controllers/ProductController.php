@@ -29,7 +29,7 @@ class ProductController extends Controller
     protected $langRepository;
     protected $tagsRepository;
 
-    public function __construct(ProductRepository $productRepository, DescriptionRepository $descriptionRepository,ProductDescriptionRepository $productDescriptionRepository,ProductTagsRepository $productTagsRepository,LangRepository $langRepository, TagsRepository $tagsRepository)
+    public function __construct(ProductRepository $productRepository, DescriptionRepository $descriptionRepository, ProductDescriptionRepository $productDescriptionRepository, ProductTagsRepository $productTagsRepository, LangRepository $langRepository, TagsRepository $tagsRepository)
     {
         $this->productRepository = $productRepository;
         $this->descriptionRepository = $descriptionRepository;
@@ -41,9 +41,11 @@ class ProductController extends Controller
 
     public function index()
     {
-        $products = $this->productRepository->getDetailedProducts();
+        //$products = $this->productRepository->getDetailedProducts();
+        $products = $this->productRepository->all();
 
-        return view('index',compact('products'));
+
+        return view('index', compact('products'));
 
     }
 
@@ -58,13 +60,13 @@ class ProductController extends Controller
         $langs = $this->langRepository->all();
         $tags = $this->tagsRepository->getAll();
 
-        return view("product.create-edit",compact('langs','tags'));
+        return view("product.create-edit", compact('langs', 'tags'));
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
     public function store(Request $request)
@@ -72,14 +74,15 @@ class ProductController extends Controller
         $data = $request->all();
         $product = $this->productRepository->store($data);
         $descriptions = $this->descriptionRepository->store($data["lang"]);
-        foreach ($descriptions as $description)
-        {
-            $this->productDescriptionRepository->store($product->id,$description->id);
+        foreach ($descriptions as $description) {
+            $this->productDescriptionRepository->store($product->id, $description->id);
         }
-        $this->productTagsRepository->store($data["tags"],$product->id);
+        /* TODO ha a tagek settelve*/
+        if (isset($data["tags"])) {
+            $this->productTagsRepository->store($data["tags"], $product->id);
+        }
 
-
-        if ($product){
+        if ($product) {
             return redirect("/");
         }
     }
@@ -107,8 +110,12 @@ class ProductController extends Controller
         $tags = $this->tagsRepository->getAll();
         $product = $this->productRepository->getById($id);
         $description = $this->descriptionRepository->getOnlyDescriptionsByProductId($id);
+        $product_tags = $this->productTagsRepository->getProductTagsById($id,'key');
 
-        return view('product.create-edit',compact('langs','tags','product','description'));
+
+
+
+        return view('product.create-edit', compact('langs', 'tags', 'product', 'description','product_tags'));
 
     }
 
@@ -123,26 +130,49 @@ class ProductController extends Controller
     {
         $data = $request->all();
         $product = $this->productRepository->getById($id);
-        if ($product){
-            $product->update(array('name' => $data["name"],
-                                    'publish_start' =>$data["publish_start"],
-                                    'publish_end' =>$data["publish_end"],
-                                    'price' =>$data["price"],));
-        }
+        $this->productRepository->updateById($id, array('name' => $data["name"],
+            'publish_start' => $data["publish_start"],
+            'publish_end' => $data["publish_end"],
+            'price' => $data["price"],));
 
-        if ($data['lang']){
-            foreach ($data['lang'] as $key => $langText)
-            {
+        /*Comment function here*/
+        if ($data['lang']) {
+            foreach ($data['lang'] as $key => $langText) {
+                $descriptionId = $this->descriptionRepository->getDescriptionByProductAndLangId($id, $key);
+                if ($descriptionId) {
+                    if ($langText != "") {
+                        $this->descriptionRepository->getById($descriptionId->description_id)->update(array('text' => $langText ?? ""));
+                    } else {
+                        $description_deletable = $this->descriptionRepository->getDescriptionByProductAndLangId($id, $key);
+                        if ($description_deletable) {
+                            $this->descriptionRepository->getById($description_deletable->description_id)->delete();
+                            $prod_desc_id = $this->productDescriptionRepository->getProdDescIdByProdAndDescId($id, $description_deletable->description_id);
 
-                $descriptionId = $this->descriptionRepository->getDescriptionByProductAndLangId($id,$key);
-                $this->descriptionRepository->getById($descriptionId->description_id)->update(array('text' => $langText));
+                            $this->productDescriptionRepository->getById($prod_desc_id->product_id)->delete();
+
+                        }
+                    }
+                } else {
+                    if ($data['lang'][$key] != null) {
+                        $description = $this->descriptionRepository->store(array($key => $data['lang'][$key]))[0];
+                        $this->productDescriptionRepository->store($id, $description->id);
+
+                    }
+
+                }
 
             }
         }
 
+        if (!array_key_exists('tags',$data)){
+            $data["tags"] = null;
+        }
+
+        $this->productTagsRepository->updateProductTags($data["tags"], $id);
+
 
         $product->refresh();
-        return redirect()->route('product.edit',$product->id);
+        return redirect()->route('product.edit', $product->id);
 
     }
 
@@ -154,7 +184,34 @@ class ProductController extends Controller
      */
     public function destroy($id)
     {
+
         $product = $this->productRepository->getById($id);
+        $deleted =$this->deleteAllByProduct($id);
+
+
         $product->delete();
+    }
+
+    public function deleteAllByProduct($product_id)
+    {
+
+        /*$prod_desc_ids = $this->productDescriptionRepository->getProdDescAttributeByProduct($product_id,'id');*/
+
+        $description_ids = $this->productDescriptionRepository->getProdDescAttributeByProduct($product_id,'description_id');
+        //$prod_tags_ids = $this->productTagsRepository->getProductTagsById($product_id,'value');
+
+
+        $this->productTagsRepository->where('product_id',$product_id)->delete();
+        $this->productDescriptionRepository->where('product_id',$product_id)->delete();
+
+
+        /*$this->productDescriptionRepository->deleteMultipleById($prod_desc_ids);*/
+
+        $this->descriptionRepository->deleteMultipleById($description_ids);
+
+
+        //$this->productTagsRepository->deleteMultipleById($prod_tags_ids);
+
+        /*$this->descriptionRepository->deleteMultipleById($descriptions);*/
     }
 }

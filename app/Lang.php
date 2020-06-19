@@ -11,7 +11,6 @@ class Lang extends Model
     protected $fillable = ["name", "code"];
     public $timestamps = false;
 
-    //
 
     public function getByCode($code)
     {

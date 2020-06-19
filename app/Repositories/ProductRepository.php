@@ -47,4 +47,7 @@ class ProductRepository extends BaseRepository
                                                 ->where('lang_id','1')
                                                 ->get();
     }
+
+
+
 }

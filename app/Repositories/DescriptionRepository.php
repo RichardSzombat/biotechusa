@@ -44,10 +44,11 @@ class DescriptionRepository extends BaseRepository
     public function store($descriptions)
     {
         $saved_descriptions = array();
+
         foreach ($descriptions as  $key => $description){
             $lang = $this->langRepository->getById($key);
 
-            if ($lang){
+            if ($lang and $description){
                 $this->model = new Description();
                 $this->model->text = $description;
                 $this->model->lang_id = $lang->id;

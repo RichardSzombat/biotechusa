@@ -30,4 +30,6 @@ class LangRepository extends BaseRepository
     {
         return $this->model->getByCode($code);
     }
+
+
 }

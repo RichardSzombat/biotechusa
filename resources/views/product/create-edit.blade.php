@@ -3,10 +3,10 @@
     <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
 
         @if(isset($product))
-            <form method="post" action="{{route('product.update',$product->id)}}">
+            <form method="post" id="form" action="{{route('product.update',$product->id)}}">
             @method('put')
         @else
-            <form method="post" action="{{route('product.store')}}">
+            <form method="post" id="form" action="{{route('product.store')}}">
         @endif
                         @csrf
                         <div class="row">
@@ -42,7 +42,6 @@
                                     </ul>
                                 </div>
                                 <div class="tab-content" id="myTabContent">
-                                    {{--TODO insert data if we have--}}
                                     <div class="tab-pane fade show active" id="description_hu" role="tabpanel"
                                          aria-labelledby="home-tab">
                                         <textarea name="lang[1]" id="hu" cols="70" rows="5" placeholder="">{{$description['hu'] ?? ""}}</textarea>
@@ -63,7 +62,7 @@
                                 <div class="form-group">
                                     @foreach($tags ?? '' as $tag)
                                     <div class="form-check">
-                                        <input class="form-check-input" name="tags[{{$tag->id}}]" type="checkbox" id="{{$tag->code}}">
+                                        <input class="form-check-input" name="tags[{{$tag->id}}]" type="checkbox" id="{{$tag->code}}" {{ isset($product_tags[$tag->id]) ? "checked" : "" }}>
                                         <label class="form-check-label" for="{{$tag->code}}">
                                             {{$tag->name}}
                                         </label>
@@ -104,7 +103,7 @@
                                 {{-- Feltöltés --}}
                                 <button type="submit" class="btn btn-primary mt-3">Termék feltöltése</button>
                                 @if(isset($product))
-                                <button type="button" class="btn btn-danger mt-3" name="delete-product" id="delete" >Termék törlése</button>
+                                <button type="submit" class="btn btn-danger mt-3 delete-button" data-product="{{$product->id}}" name="delete-product" id="delete"  >Termék törlése</button>
                                 @endif
                             </div>
                         </div>

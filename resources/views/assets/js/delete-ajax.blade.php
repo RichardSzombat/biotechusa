@@ -1,8 +1,11 @@
 <script>
     $( document ).ready(function() {
-        $('#delete').on('click',function () {
+
+        $('.delete-button').on('click',function () {
+            let productId = this.getAttribute("data-product");
+            console.log(productId);
             $.ajax({
-                url: '{{route('product.delete',$product->id)}}',
+                url: '/product/'+productId+'/delete',
                 type: "post",
                 method: 'delete',
                 headers: {
@@ -16,6 +19,7 @@
                 }
             });
         });
+
     });
 
 </script>
