@@ -13,10 +13,39 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('index');
-});
 
-Route::get('/add-product', function () {
-    return view('product/addProduct');
-});
+Route::get('/',
+    [
+        'as' =>'index',
+        'uses' => 'ProductController@index'
+    ]);
+
+Route::get('/product/create',
+    [
+        'as' =>'product.create',
+        'uses' => 'ProductController@create'
+    ]);
+
+Route::post('/product/store',
+    [
+        'as' =>'product.store',
+        'uses' => 'ProductController@store'
+    ]);
+
+Route::get('/product/{id}/edit',
+    [
+        'as' =>'product.edit',
+        'uses' => 'ProductController@edit'
+    ]);
+
+Route::put('/product/{id}/update',
+    [
+        'as' =>'product.update',
+        'uses' => 'ProductController@update'
+    ]);
+
+Route::delete('product/{id}/delete',
+    [
+       'as' => 'product.delete',
+       'uses' => 'ProductController@destroy'
+    ]);

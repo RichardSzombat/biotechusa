@@ -14,7 +14,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/add-product">
+                <a class="nav-link" href="{{route('product.create')}}">
                     <span data-feather="file"></span>
                     Termék hozzáadása
                 </a>
