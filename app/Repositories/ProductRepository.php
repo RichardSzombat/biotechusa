@@ -33,19 +33,10 @@ class ProductRepository extends BaseRepository
         $this->model->name = $product["name"];
         $this->model->publish_start = $product["publish_start"];
         $this->model->publish_end = $product["publish_end"];
+        $this->model->image = $product["image"];
         $this->model->price = $product["price"];
         $this->model->save();
         return $this->model;
-    }
-
-
-
-    public function getDetailedProducts()
-    {
-        return DB::table('products')->leftJoin('product_description','products.id','=','product_description.product_id')
-                                                ->leftJoin('description','product_description.description_id','=','description.id')
-                                                ->where('lang_id','1')
-                                                ->get();
     }
 
 

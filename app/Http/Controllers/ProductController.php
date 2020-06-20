@@ -10,6 +10,7 @@ use App\Repositories\ProductRepository;
 use App\Repositories\ProductTagsRepository;
 use App\Repositories\TagsRepository;
 use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -66,18 +67,23 @@ class ProductController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @param Request $request
+     * @return RedirectResponse
      */
     public function store(Request $request)
     {
         $data = $request->all();
+        $image = $request->file('image');
+        if ($image) {
+            $data['image'] = $this->uploadImage($image);
+        }
         $product = $this->productRepository->store($data);
         $descriptions = $this->descriptionRepository->store($data["lang"]);
         foreach ($descriptions as $description) {
             $this->productDescriptionRepository->store($product->id, $description->id);
         }
         /* TODO ha a tagek settelve*/
+
         if (isset($data["tags"])) {
             $this->productTagsRepository->store($data["tags"], $product->id);
         }
@@ -110,12 +116,9 @@ class ProductController extends Controller
         $tags = $this->tagsRepository->getAll();
         $product = $this->productRepository->getById($id);
         $description = $this->descriptionRepository->getOnlyDescriptionsByProductId($id);
-        $product_tags = $this->productTagsRepository->getProductTagsById($id,'key');
+        $product_tags = $this->productTagsRepository->getProductTagsById($id, 'key');
 
-
-
-
-        return view('product.create-edit', compact('langs', 'tags', 'product', 'description','product_tags'));
+        return view('product.create-edit', compact('langs', 'tags', 'product', 'description', 'product_tags'));
 
     }
 
@@ -123,53 +126,32 @@ class ProductController extends Controller
      * Update the specified resource in storage.
      *
      * @param $id
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @param Request $request
+     * @return RedirectResponse
      */
     public function update($id, Request $request)
     {
         $data = $request->all();
         $product = $this->productRepository->getById($id);
+        $image = $request->file('image');
+        if ($image) {
+            $image = $this->uploadImage($image);
+            $this->productRepository->updateById($id, array('image' => $image));
+        }
+
         $this->productRepository->updateById($id, array('name' => $data["name"],
             'publish_start' => $data["publish_start"],
             'publish_end' => $data["publish_end"],
             'price' => $data["price"],));
 
-        /*Comment function here*/
-        if ($data['lang']) {
-            foreach ($data['lang'] as $key => $langText) {
-                $descriptionId = $this->descriptionRepository->getDescriptionByProductAndLangId($id, $key);
-                if ($descriptionId) {
-                    if ($langText != "") {
-                        $this->descriptionRepository->getById($descriptionId->description_id)->update(array('text' => $langText ?? ""));
-                    } else {
-                        $description_deletable = $this->descriptionRepository->getDescriptionByProductAndLangId($id, $key);
-                        if ($description_deletable) {
-                            $this->descriptionRepository->getById($description_deletable->description_id)->delete();
-                            $prod_desc_id = $this->productDescriptionRepository->getProdDescIdByProdAndDescId($id, $description_deletable->description_id);
+        $this->descriptionRepository->updateDescriptions($id, $data["lang"]);
 
-                            $this->productDescriptionRepository->getById($prod_desc_id->product_id)->delete();
 
-                        }
-                    }
-                } else {
-                    if ($data['lang'][$key] != null) {
-                        $description = $this->descriptionRepository->store(array($key => $data['lang'][$key]))[0];
-                        $this->productDescriptionRepository->store($id, $description->id);
-
-                    }
-
-                }
-
-            }
-        }
-
-        if (!array_key_exists('tags',$data)){
+        if (!array_key_exists('tags', $data)) {
             $data["tags"] = null;
         }
 
         $this->productTagsRepository->updateProductTags($data["tags"], $id);
-
 
         $product->refresh();
         return redirect()->route('product.edit', $product->id);
@@ -184,34 +166,30 @@ class ProductController extends Controller
      */
     public function destroy($id)
     {
-
         $product = $this->productRepository->getById($id);
-        $deleted =$this->deleteAllByProduct($id);
-
-
+        $this->deleteAllByProduct($id);
         $product->delete();
     }
 
     public function deleteAllByProduct($product_id)
     {
-
-        /*$prod_desc_ids = $this->productDescriptionRepository->getProdDescAttributeByProduct($product_id,'id');*/
-
-        $description_ids = $this->productDescriptionRepository->getProdDescAttributeByProduct($product_id,'description_id');
-        //$prod_tags_ids = $this->productTagsRepository->getProductTagsById($product_id,'value');
-
-
-        $this->productTagsRepository->where('product_id',$product_id)->delete();
-        $this->productDescriptionRepository->where('product_id',$product_id)->delete();
-
-
-        /*$this->productDescriptionRepository->deleteMultipleById($prod_desc_ids);*/
-
+        $description_ids = $this->productDescriptionRepository->getProdDescAttributeByProduct($product_id, 'description_id');
+        $this->productTagsRepository->where('product_id', $product_id)->delete();
+        $this->productDescriptionRepository->where('product_id', $product_id)->delete();
         $this->descriptionRepository->deleteMultipleById($description_ids);
 
+    }
 
-        //$this->productTagsRepository->deleteMultipleById($prod_tags_ids);
+    public function uploadImage($image)
+    {
+        $destinationPath = 'uploads';
+        $timestamp = time();
+        $image_name = $timestamp . "_product";
+        $image_name = $timestamp . "_product." . $image->getClientOriginalExtension();
 
-        /*$this->descriptionRepository->deleteMultipleById($descriptions);*/
+
+        $image->move($destinationPath, $image_name);
+
+        return $image_name;
     }
 }

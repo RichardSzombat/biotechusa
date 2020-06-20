@@ -3,10 +3,10 @@
     <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
 
         @if(isset($product))
-            <form method="post" id="form" action="{{route('product.update',$product->id)}}">
+            <form method="post" enctype="multipart/form-data" id="form" action="{{route('product.update',$product->id)}}">
             @method('put')
         @else
-            <form method="post" id="form" action="{{route('product.store')}}">
+            <form method="post" enctype="multipart/form-data" id="form" action="{{route('product.store')}}">
         @endif
                         @csrf
                         <div class="row">
@@ -77,6 +77,13 @@
                                     {{--TODO inputEmail4 etc cserre--}}
                                     <input type="file" name="image" class="custom-file-input" id="image">
                                     <label class="custom-file-label" for="customFile">Válasszon képet</label>
+                                    <div class="container  d-flex p-0 mt-2">
+                                    @if(isset($product))
+                                        <img class="img-fluid" id="preview" src="{{url('/uploads')."/".$product->image}}"  />
+                                    @else
+                                        <img class="img-fluid" id="preview" src="#" hidden />
+                                    @endif
+                                    </div>
                                 </div>
 
                                 {{-- Publikálás --}}
@@ -114,4 +121,22 @@
     @if($product ?? "")
         @include('assets.js.delete-ajax')
     @endif
+    <script>
+        function readURL(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+
+                reader.onload = function(e) {
+                    $('#preview').attr('src', e.target.result);
+                };
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        $("#image").change(function() {
+            $("#preview").removeAttr('hidden');
+            readURL(this);
+        });
+    </script>
 @endsection
