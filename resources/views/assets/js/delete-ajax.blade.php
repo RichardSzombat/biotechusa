@@ -3,7 +3,6 @@
 
         $('.delete-button').on('click',function () {
             let productId = this.getAttribute("data-product");
-            console.log(productId);
             $.ajax({
                 url: '/product/'+productId+'/delete',
                 type: "post",

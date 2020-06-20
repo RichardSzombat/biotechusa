@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ProductRequest;
 use App\Product;
 use App\Repositories\DescriptionRepository;
 use App\Repositories\LangRepository;
@@ -9,6 +10,7 @@ use App\Repositories\ProductDescriptionRepository;
 use App\Repositories\ProductRepository;
 use App\Repositories\ProductTagsRepository;
 use App\Repositories\TagsRepository;
+use Exception;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -42,10 +44,7 @@ class ProductController extends Controller
 
     public function index()
     {
-        //$products = $this->productRepository->getDetailedProducts();
         $products = $this->productRepository->all();
-
-
         return view('index', compact('products'));
 
     }
@@ -70,19 +69,21 @@ class ProductController extends Controller
      * @param Request $request
      * @return RedirectResponse
      */
-    public function store(Request $request)
+    public function store(ProductRequest $request)
     {
+
         $data = $request->all();
         $image = $request->file('image');
         if ($image) {
             $data['image'] = $this->uploadImage($image);
+        }else{
+            $data['image'] = "";
         }
         $product = $this->productRepository->store($data);
         $descriptions = $this->descriptionRepository->store($data["lang"]);
         foreach ($descriptions as $description) {
             $this->productDescriptionRepository->store($product->id, $description->id);
         }
-        /* TODO ha a tagek settelve*/
 
         if (isset($data["tags"])) {
             $this->productTagsRepository->store($data["tags"], $product->id);
@@ -129,7 +130,7 @@ class ProductController extends Controller
      * @param Request $request
      * @return RedirectResponse
      */
-    public function update($id, Request $request)
+    public function update($id, ProductRequest $request)
     {
         $data = $request->all();
         $product = $this->productRepository->getById($id);
@@ -146,7 +147,6 @@ class ProductController extends Controller
 
         $this->descriptionRepository->updateDescriptions($id, $data["lang"]);
 
-
         if (!array_key_exists('tags', $data)) {
             $data["tags"] = null;
         }
@@ -155,7 +155,6 @@ class ProductController extends Controller
 
         $product->refresh();
         return redirect()->route('product.edit', $product->id);
-
     }
 
     /**
@@ -163,6 +162,7 @@ class ProductController extends Controller
      *
      * @param Product $product
      * @return Response
+     * @throws Exception
      */
     public function destroy($id)
     {
@@ -177,19 +177,14 @@ class ProductController extends Controller
         $this->productTagsRepository->where('product_id', $product_id)->delete();
         $this->productDescriptionRepository->where('product_id', $product_id)->delete();
         $this->descriptionRepository->deleteMultipleById($description_ids);
-
     }
 
     public function uploadImage($image)
     {
         $destinationPath = 'uploads';
         $timestamp = time();
-        $image_name = $timestamp . "_product";
         $image_name = $timestamp . "_product." . $image->getClientOriginalExtension();
-
-
         $image->move($destinationPath, $image_name);
-
         return $image_name;
     }
 }

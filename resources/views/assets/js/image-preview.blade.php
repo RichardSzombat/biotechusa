@@ -3,7 +3,7 @@
         if (input.files && input.files[0]) {
             var reader = new FileReader();
 
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 $('#preview').attr('src', e.target.result);
             };
 
@@ -11,7 +11,7 @@
         }
     }
 
-    $("#image").change(function() {
+    $("#image").change(function () {
         $("#preview").removeAttr('hidden');
         readURL(this);
     });

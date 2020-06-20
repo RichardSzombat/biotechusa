@@ -5,7 +5,7 @@ namespace App\Repositories;
 use App\ProductTags;
 use Illuminate\Support\Facades\DB;
 use JasonGuru\LaravelMakeRepository\Repository\BaseRepository;
-//use Your Model
+
 
 /**
  * Class ProductTagsRepository.

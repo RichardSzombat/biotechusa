@@ -28,4 +28,15 @@ class TagsRepository extends BaseRepository
     {
         return Tags::all();
     }
+
+    public function getAllId()
+    {
+        $tags = Tags::all();
+        $tags_array = array();
+        foreach ($tags as $tag)
+        {
+            array_push($tags_array,$tag->id);
+        }
+        return $tags_array;
+    }
 }

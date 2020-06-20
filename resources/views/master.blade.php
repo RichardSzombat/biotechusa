@@ -7,6 +7,7 @@
     <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
     <meta name="generator" content="Jekyll v4.0.1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
     <title>BiotechUSA demo</title>
 
     <link rel="canonical" href="https://getbootstrap.com/docs/4.5/examples/dashboard/">
