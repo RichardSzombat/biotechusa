@@ -45,21 +45,14 @@ class ProductDescriptionRepository extends BaseRepository
             ->where('description.lang_id', '=', $lang_id)->first();
     }
 
-    public function getProdDescIdByProdAndDescId($product_id, $description_id)
+    public function getProdDescAttributeByProduct($product_id, $attribute)
     {
-        return DB::table('product_description')->where('product_id', $product_id)
-            ->where('description_id', $description_id)->first();
-    }
-
-
-    public function getProdDescAttributeByProduct($product_id,$attribute)
-    {
-        $results = DB::table('product_description')->leftJoin('description','product_description.description_id','=','description.id')
-            ->where('product_id',$product_id)->get();
+        $results = DB::table('product_description')->leftJoin('description', 'product_description.description_id', '=', 'description.id')
+            ->where('product_id', $product_id)->get();
         $result_array = array();
 
-        foreach ($results as $result){
-            array_push($result_array,$result->$attribute);
+        foreach ($results as $result) {
+            array_push($result_array, $result->$attribute);
         }
         return $result_array;
 

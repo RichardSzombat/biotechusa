@@ -11,7 +11,4 @@ class Description extends Model
     protected $fillable = ['text', 'lang_id'];
     public $timestamps = false;
 
-    //
-
-
 }

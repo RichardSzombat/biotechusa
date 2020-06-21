@@ -95,7 +95,7 @@
                                     <div class="container  d-flex p-0 mt-2">
                                         @if(isset($product))
                                             <img class="img-fluid" id="preview"
-                                                 src="{{url('/uploads')."/".$product->image}}"/>
+                                                 src="{{$product->image == "" ? "#" : url('/uploads')."/".$product->image}}" {{$product->image == "" ? "hidden" : ""}}/>
                                         @else
                                             <img class="img-fluid" id="preview" src="#" hidden/>
                                         @endif
@@ -127,7 +127,7 @@
                                 </div>
 
                                 {{-- Feltöltés --}}
-                                <button type="submit" class="btn btn-primary mt-3">Termék feltöltése</button>
+                                <button type="submit" class="btn btn-primary mt-3">{{isset($product)? "Termék frissítése":"Termék feltöltése"}}</button>
                                 @if(isset($product))
                                     <button type="submit" class="btn btn-danger mt-3 delete-button"
                                             data-product="{{$product->id}}" name="delete-product" id="delete">Termék

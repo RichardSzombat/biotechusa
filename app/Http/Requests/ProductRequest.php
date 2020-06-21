@@ -36,6 +36,7 @@ class ProductRequest extends FormRequest
      */
     public function rules()
     {
+
         $tags = $this->tagRepository->getAllId();
 
         return [

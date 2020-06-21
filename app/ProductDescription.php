@@ -13,9 +13,4 @@ class ProductDescription extends Model
     public $timestamps = false;
     //
 
-    public function getDescriptionIdByProductId($productId)
-    {
-        return ProductDescription::where('product_id',$productId)->get();
-
-    }
 }

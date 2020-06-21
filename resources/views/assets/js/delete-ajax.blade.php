@@ -1,7 +1,8 @@
 <script>
     $( document ).ready(function() {
 
-        $('.delete-button').on('click',function () {
+        $('.delete-button').on('click',function (e) {
+            e.preventDefault();
             let productId = this.getAttribute("data-product");
             $.ajax({
                 url: '/product/'+productId+'/delete',
@@ -18,7 +19,5 @@
                 }
             });
         });
-
     });
-
 </script>

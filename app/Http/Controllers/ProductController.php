@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\DeleteRequest;
 use App\Http\Requests\ProductRequest;
 use App\Product;
 use App\Repositories\DescriptionRepository;
@@ -13,6 +12,7 @@ use App\Repositories\ProductTagsRepository;
 use App\Repositories\TagsRepository;
 use Exception;
 use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -48,7 +48,6 @@ class ProductController extends Controller
     {
         $products = $this->productRepository->all();
         return view('index', compact('products'));
-
     }
 
     /**
@@ -58,7 +57,6 @@ class ProductController extends Controller
      */
     public function create()
     {
-
         $langs = $this->langRepository->all();
         $tags = $this->tagsRepository->getAll();
 
@@ -68,7 +66,7 @@ class ProductController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param Request $request
+     * @param ProductRequest $request
      * @return RedirectResponse
      */
     public function store(ProductRequest $request)
@@ -78,7 +76,7 @@ class ProductController extends Controller
         $image = $request->file('image');
         if ($image) {
             $data['image'] = $this->uploadImage($image);
-        }else{
+        } else {
             $data['image'] = "";
         }
         $product = $this->productRepository->store($data);
@@ -122,68 +120,72 @@ class ProductController extends Controller
         $product_tags = $this->productTagsRepository->getProductTagsById($id, 'key');
 
         return view('product.create-edit', compact('langs', 'tags', 'product', 'description', 'product_tags'));
-
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update records by product id.
      *
      * @param $id
-     * @param Request $request
+     * @param ProductRequest $request
      * @return RedirectResponse
      */
     public function update($id, ProductRequest $request)
     {
         $data = $request->all();
-        $product = $this->productRepository->getById($id);
-        $image = $request->file('image');
-        if ($image) {
-            $image = $this->uploadImage($image);
-            $this->productRepository->updateById($id, array('image' => $image));
+        $product = DB::table('products')->where('id', $id)->exists();
+        if ($product) {
+            $product = $this->productRepository->getById($id);
+            $image = $request->file('image');
+            if ($image) {
+                $image = $this->uploadImage($image);
+                File::delete('uploads/' . $product->image);
+                $this->productRepository->updateById($id, array('image' => $image));
+            }
+            $this->productRepository->updateById($id, array('name' => $data["name"],
+                'publish_start' => $data["publish_start"],
+                'publish_end' => $data["publish_end"],
+                'price' => $data["price"],));
+
+            $this->descriptionRepository->updateDescriptions($id, $data["lang"]);
+            if (!array_key_exists('tags', $data)) {
+                $data["tags"] = null;
+            }
+            $this->productTagsRepository->updateProductTags($data["tags"], $id);
+            $product->refresh();
+            return redirect()->route('index');
+        } else {
+            return redirect()->back()->withInput()->withErrors(['Product_id is invalid']);
         }
 
-        $this->productRepository->updateById($id, array('name' => $data["name"],
-            'publish_start' => $data["publish_start"],
-            'publish_end' => $data["publish_end"],
-            'price' => $data["price"],));
-
-        $this->descriptionRepository->updateDescriptions($id, $data["lang"]);
-
-        if (!array_key_exists('tags', $data)) {
-            $data["tags"] = null;
-        }
-
-        $this->productTagsRepository->updateProductTags($data["tags"], $id);
-
-        $product->refresh();
-        return redirect()->route('product.edit', $product->id);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Delete product by id and every record that it is related to.
      *
      * @param $id
-     * @param ProductRequest $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      * @throws Exception
      */
     public function destroy($id)
     {
-        $product = DB::table('products')->where('id',$id)->exists();
-        if ($product)
-        {
+        $product = DB::table('products')->where('id', $id)->exists();
+        if ($product) {
             $product = $this->productRepository->getById($id);
             $this->deleteAllByProduct($id);
-            File::delete('uploads/'.$product->image);
+            File::delete('uploads/' . $product->image);
             $product->delete();
             return response()->json(['success' => 'Product deleted.'], 200);
-        }else{
+        } else {
             return response()->json(['error' => 'Product not found.'], 404);
 
         }
 
     }
 
+    /**
+     * Delete related records to by product_id
+     * @param $product_id
+     */
     public function deleteAllByProduct($product_id)
     {
         $description_ids = $this->productDescriptionRepository->getProdDescAttributeByProduct($product_id, 'description_id');
@@ -192,6 +194,10 @@ class ProductController extends Controller
         $this->descriptionRepository->deleteMultipleById($description_ids);
     }
 
+    /**Upload image to to server's upload folder. Returns image's path.
+     * @param $image string
+     * @return string
+     */
     public function uploadImage($image)
     {
         $destinationPath = 'uploads';
