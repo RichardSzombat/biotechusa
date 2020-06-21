@@ -109,9 +109,9 @@
                                 <div class="form-group">
                                     <br>
                                     <input class="col-5 datepicker" name="publish_start" type="date" id="publish_start"
-                                           value="{{$product->publish_start ?? "" }}"> -
+                                           value="{{$product->publish_start ?? date('Y-m-d') }}"> -
                                     <input class="col-5 datepicker" name="publish_end" type="date" id="publish_end"
-                                           value="{{$product->publish_end ?? "" }}">
+                                           value="{{$product->publish_end ?? date('Y-m-d', strtotime('+1 day')) }}">
                                 </div>
 
                                 {{-- Ár --}}

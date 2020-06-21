@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DeleteRequest;
 use App\Http\Requests\ProductRequest;
 use App\Product;
 use App\Repositories\DescriptionRepository;
@@ -16,6 +17,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\View\View;
 
 class ProductController extends Controller
@@ -160,15 +162,26 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param Product $product
-     * @return Response
+     * @param $id
+     * @param ProductRequest $request
+     * @return \Illuminate\Http\JsonResponse
      * @throws Exception
      */
     public function destroy($id)
     {
-        $product = $this->productRepository->getById($id);
-        $this->deleteAllByProduct($id);
-        $product->delete();
+        $product = DB::table('products')->where('id',$id)->exists();
+        if ($product)
+        {
+            $product = $this->productRepository->getById($id);
+            $this->deleteAllByProduct($id);
+            File::delete('uploads/'.$product->image);
+            $product->delete();
+            return response()->json(['success' => 'Product deleted.'], 200);
+        }else{
+            return response()->json(['error' => 'Product not found.'], 404);
+
+        }
+
     }
 
     public function deleteAllByProduct($product_id)
