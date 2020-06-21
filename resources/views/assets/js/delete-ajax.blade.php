@@ -10,7 +10,7 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                success: function (response) {
+                success: function () {
                     window.location ="/"
                 },
                 error: function(jqXHR, textStatus, errorThrown) {

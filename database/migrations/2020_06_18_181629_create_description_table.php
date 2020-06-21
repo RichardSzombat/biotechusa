@@ -13,12 +13,11 @@ class CreateDescriptionTable extends Migration
      */
     public function up()
     {
+        Schema::dropIfExists('description');
         Schema::create('description', function (Blueprint $table) {
             $table->id();
             $table->text('text');
             $table->smallInteger('lang_id');
-            $table->rememberToken();
-            $table->timestamps();
         });
     }
 

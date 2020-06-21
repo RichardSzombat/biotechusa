@@ -3,12 +3,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
+    <meta name="description" content="BioTechUSA próbafeladat">
     <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
     <meta name="generator" content="Jekyll v4.0.1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
-    <title>BiotechUSA demo</title>
+    <title>BiotechUSA próbafeladat</title>
 
     <link rel="canonical" href="https://getbootstrap.com/docs/4.5/examples/dashboard/">
 

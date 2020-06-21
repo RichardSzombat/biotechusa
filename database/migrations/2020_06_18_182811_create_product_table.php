@@ -14,16 +14,13 @@ class CreateProductTable extends Migration
     public function up()
     {
         Schema::dropIfExists('products');
-
-
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->string('name',255);
-            $table->integer('image');
+            $table->string('image');
             $table->date('publish_start')->nullable();
             $table->date('publish_end')->nullable();
             $table->integer('price');
-            $table->timestamps();
         });
     }
 

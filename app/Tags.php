@@ -7,6 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class Tags extends Model
 {
     protected $table = "tags";
-    protected $fillable = ["name"];
+    protected $fillable = ["name","code"];
     public $timestamps = false;
 }

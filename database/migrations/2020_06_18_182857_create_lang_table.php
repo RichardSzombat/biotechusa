@@ -13,11 +13,12 @@ class CreateLangTable extends Migration
      */
     public function up()
     {
+        Schema::dropIfExists('lang');
+
         Schema::create('lang', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('code');
-            $table->timestamps();
         });
     }
 

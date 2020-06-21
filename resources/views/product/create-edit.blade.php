@@ -90,7 +90,6 @@
 
                                 <h5>Kép feltöltése</h5>
                                 <div class="form-group custom-file">
-                                    {{--TODO inputEmail4 etc cserre--}}
                                     <input type="file" name="image" class="custom-file-input" id="image">
                                     <label class="custom-file-label" for="customFile">Válasszon képet</label>
                                     <div class="container  d-flex p-0 mt-2">

@@ -13,11 +13,11 @@ class CreateProductDescriptionTable extends Migration
      */
     public function up()
     {
+        Schema::dropIfExists('product_description');
         Schema::create('product_description', function (Blueprint $table) {
             $table->id();
             $table->integer('product_id');
             $table->integer('description_id');
-            $table->timestamps();
         });
     }
 
