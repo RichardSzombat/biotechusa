@@ -17,7 +17,7 @@ class CreateDescriptionTable extends Migration
         Schema::create('description', function (Blueprint $table) {
             $table->id();
             $table->text('text');
-            $table->smallInteger('lang_id');
+            $table->bigInteger('lang_id');
         });
     }
 

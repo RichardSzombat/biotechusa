@@ -16,8 +16,8 @@ class CreateProductDescriptionTable extends Migration
         Schema::dropIfExists('product_description');
         Schema::create('product_description', function (Blueprint $table) {
             $table->id();
-            $table->integer('product_id');
-            $table->integer('description_id');
+            $table->bigInteger('product_id');
+            $table->bigInteger('description_id');
         });
     }
 
